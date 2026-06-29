@@ -18,6 +18,7 @@ function App() {
   const [boxes, setBoxes] = useState<Box[]>([]);
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [playheadPosition, setPlayheadPosition] = useState(0);
+  const [currentKey] = useState('C4');
   const offsetRef = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement | null>(null);
   const boxesRef = useRef(boxes);
@@ -30,12 +31,15 @@ function App() {
     synth.triggerAttackRelease('C4', '4n');
   }, []);
 
-  const playRandomNote = useCallback(async () => {
+  const playNodeInKey = useCallback(async (key: string, stackHeight: number) => {
     await Tone.start();
     const synth = new Tone.Synth().toDestination();
-    const notes = ['C3', 'D3', 'E3', 'F3', 'G3', 'A3', 'B3', 'C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
-    const note = notes[Math.floor(Math.random() * notes.length)];
-    synth.triggerAttackRelease(note, '8n');
+    const baseMidi = Tone.Frequency(key).toMidi();
+    const scaleDegrees = [0, 2, 4, 5, 7, 9, 11];
+    const degreeOffset = Math.max(stackHeight - 1, 0);
+    const semitoneOffset = scaleDegrees[degreeOffset % 7] + Math.floor(degreeOffset / 7) * 12;
+    const targetNote = Tone.Frequency(baseMidi + semitoneOffset, 'midi').toNote();
+    synth.triggerAttackRelease(targetNote, '8n');
   }, []);
 
   const addBox = useCallback((x: number, y: number) => {
@@ -129,7 +133,7 @@ function App() {
       if (lastPlayheadXRef.current !== null) {
         boxesRef.current.forEach((box) => {
           if (lastPlayheadXRef.current! < box.x && playheadX >= box.x) {
-            void playRandomNote();
+            void playNodeInKey(currentKey, box.stackHeight);
           }
         });
       }
@@ -144,7 +148,7 @@ function App() {
     return () => {
       window.cancelAnimationFrame(frameId);
     };
-  }, [playRandomNote]);
+  }, [currentKey, playNodeInKey]);
 
   const containerStyle = useMemo(
     () => ({

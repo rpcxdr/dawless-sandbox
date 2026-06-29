@@ -46,3 +46,5 @@ If you double click on a square, delete it. Make the random square colors very b
 The double click on a square should only delete the square you double clicke on, and it should not create a new square. Currently it does both.
 
 Similarly, drag release should not trigger a click that increments stackHeight.
+
+Add a state variable called currentKey. Replace #sym:playRandomNote with playNodeInKey. playNodeInKey takes the current key, adds the number of scale degrees equal to the stackHeightof this square, and plays that note.
