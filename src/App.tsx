@@ -26,6 +26,7 @@ function App() {
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [playheadPosition, setPlayheadPosition] = useState(0);
   const [currentKey] = useState('C4');
+  const [compositionMode, setCompositionMode] = useState<'Major' | 'Pentatonic'>('Major');
   const [activeBoxId, setActiveBoxId] = useState<number | null>(null);
   const [isOverTrash, setIsOverTrash] = useState(false);
   const offsetRef = useRef({ x: 0, y: 0 });
@@ -72,7 +73,7 @@ function App() {
     };
   }, []);
 
-  const playNodeInKey = useCallback(async (key: string, stackHeight: number, boxCenterY: number) => {
+  const playMajor = useCallback(async (key: string, stackHeight: number, boxCenterY: number) => {
     if (Tone.getContext().state !== 'running') {
       await Tone.start();
     }
@@ -101,6 +102,50 @@ function App() {
     synth.triggerAttackRelease(targetNote, '8n');
   }, []);
 
+  const playPentatonic = useCallback(async (key: string, stackHeight: number, boxCenterY: number) => {
+    if (Tone.getContext().state !== 'running') {
+      await Tone.start();
+    }
+
+    const containerHeight = containerRef.current?.clientHeight ?? 0;
+    const trackHeight = containerHeight > 0 ? containerHeight / 4 : 0;
+    const trackIndex = containerHeight > 0 ? Math.min(Math.max(Math.floor(boxCenterY / trackHeight), 0), 3) : 0;
+
+    const synth =
+      trackIndex === 0
+        ? melodySynthRef.current
+        : trackIndex === 1
+          ? harmonySynthRef.current
+          : trackIndex === 2
+            ? bassSynthRef.current
+            : rhythmSynthRef.current;
+
+    if (!synth) {
+      return;
+    }
+    const baseMidi = Tone.Frequency(key).toMidi();
+    const scaleDegrees = [0, 2, 4, 7, 9];
+    const degreeOffset = Math.max(stackHeight - 1, 0);
+    const semitoneOffset = scaleDegrees[degreeOffset % 5] + Math.floor(degreeOffset / 5) * 12;
+    const targetNote = Tone.Frequency(baseMidi + semitoneOffset, 'midi').toNote();
+    synth.triggerAttackRelease(targetNote, '8n');
+  }, []);
+
+  const playFunctions = useMemo(
+    () => ({
+      Major: playMajor,
+      Pentatonic: playPentatonic,
+    }),
+    [playMajor, playPentatonic]
+  );
+
+  const handlePlayEvent = useCallback(
+    async (key: string, stackHeight: number, boxCenterY: number) => {
+      await playFunctions[compositionMode](key, stackHeight, boxCenterY);
+    },
+    [compositionMode, playFunctions]
+  );
+
   const addBox = useCallback((x: number, y: number) => {
     const newBox = {
       id: Date.now(),
@@ -120,7 +165,7 @@ function App() {
     const y = event.clientY - rect.top - 25;
     const newBoxId = addBox(x, y);
     setActiveBoxId(newBoxId);
-    playNodeInKey(currentKey, 1, y + 25);
+    handlePlayEvent(currentKey, 1, y + 25);
   };
 
   const beginDrag = (event: React.PointerEvent<HTMLDivElement>, box: Box) => {
@@ -220,7 +265,7 @@ function App() {
         boxesRef.current.forEach((box) => {
           if (lastPlayheadXRef.current! < box.x && playheadX >= box.x) {
             setActiveBoxId(box.id);
-            void playNodeInKey(currentKey, box.stackHeight, box.y + 25);
+            void handlePlayEvent(currentKey, box.stackHeight, box.y + 25);
           }
         });
       }
@@ -235,7 +280,7 @@ function App() {
     return () => {
       window.cancelAnimationFrame(frameId);
     };
-  }, [currentKey, playNodeInKey]);
+  }, [currentKey, handlePlayEvent]);
 
   const containerStyle = useMemo(
     () => ({
@@ -254,6 +299,22 @@ function App() {
 
   return (
     <div className="app">
+      <div className="composition-controls" role="group" aria-label="Composition mode">
+        <button
+          type="button"
+          className={`composition-mode-button${compositionMode === 'Major' ? ' is-active' : ''}`}
+          onClick={() => setCompositionMode('Major')}
+        >
+          Major
+        </button>
+        <button
+          type="button"
+          className={`composition-mode-button${compositionMode === 'Pentatonic' ? ' is-active' : ''}`}
+          onClick={() => setCompositionMode('Pentatonic')}
+        >
+          Pentatonic
+        </button>
+      </div>
       <div ref={containerRef} className="container" style={containerStyle} onDoubleClick={handleContainerDoubleClick}>
         <div className="track-layer" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
           {trackSections.map((track, index) => (

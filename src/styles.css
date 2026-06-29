@@ -20,6 +20,30 @@ body {
   padding: 1.5rem;
 }
 
+.composition-controls {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.composition-mode-button {
+  border: 2px solid rgb(137, 140, 145);
+  border-radius: 999px;
+  background: transparent;
+  color: rgb(137, 140, 145);
+  font-size: 24px;
+  font-weight: 700;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.composition-mode-button.is-active {
+  background: #fef3c7;
+  border-color: #fef3c7;
+  color: #111827;
+}
+
 .container {
   width: 100%;
   max-width: 900px;

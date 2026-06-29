@@ -56,3 +56,14 @@ We're creating a synth UI that operates in a browser: squares represent notes, a
 Now we are going to treat the behavior of squares in each track differently based on their centerpoint.  First let's give each track its own sound.  Instead of a single synthRef, create four: melodySynthRef, harmonySynthRef, bassSynthRef, and rhythmSynthRef.  For each synthRef, create an appropriate Tone.PolySynth.  In #sym:playNodeInKey , if the center of the square falls within the melody, harmony, bass, or rhythm track, play the corrisponding synth sound.
 
 When I doulble click, the word "melody" is selected. Use CSS to turn off text selection for this page.
+Using css make the boxes make a bright white pulse that fade to the original color when it's note is played.
+Add a large trash can icon under the main container div. Make it so that if you drag a square there, it is deleted.
+Remove the feature where double clicking deletes the square.
+Update this so that if I double click on a square, it does not create a new square.
+
+This page implements a multi-track UX for a synthesizer.  We are now doing to allow users to switch between synthesis composition modes while retaining the basic square dragging UX.  First, add a state variable called compositionMode.  Add two buttons, one labeled "Major", one labeled "Pentatonic".  By default, the compositionMode should be "Major".  The current compositional mode button should be a bright color with black text, font-size: 24px. All other compositional mode buttons should have a transparent background and the text and border should be dark.
+
+The unselected buttons are too hard to see. Make the text and border lighter and not transparent.
+
+We're going to do some refactoring of #sym:playNodeInKey so that each mode plays notes in a different way.  Create a map from compositionMode ("Major", "Pentatonic") to a play function (playMajor()), playPentatonic()).  Rename #sym:playNodeInKey  to handlePlayEvent.  Create two play functions.  playMajor() should use the code in #sym:playNodeInKey  with no changes.  The second, playPentatonic(), should be just like playMajor(), but it chooses from the pentatonic scale degrees [0, 2, 4, 7, 8] mod 5.
+
