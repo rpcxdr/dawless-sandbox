@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import * as Tone from 'tone';
+import { MajorMode } from './modes/majorMode';
+import { PentatonicMode } from './modes/pentatonicMode';
 
 type Box = {
   id: number;
@@ -35,113 +36,31 @@ function App() {
   const boxesRef = useRef(boxes);
   const lastPlayheadXRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
-  const melodySynthRef = useRef<Tone.PolySynth<Tone.Synth> | null>(null);
-  const harmonySynthRef = useRef<Tone.PolySynth<Tone.Synth> | null>(null);
-  const bassSynthRef = useRef<Tone.PolySynth<Tone.Synth> | null>(null);
-  const rhythmSynthRef = useRef<Tone.PolySynth<Tone.Synth> | null>(null);
 
-  useEffect(() => {
-    melodySynthRef.current = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: 'triangle' },
-      envelope: { attack: 0.005, decay: 0.4, sustain: 0.2, release: 0.2 },
-    }).toDestination();
-
-    harmonySynthRef.current = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: 'sawtooth' },
-      envelope: { attack: 0.01, decay: 0.35, sustain: 0.15, release: 0.2 },
-    }).toDestination();
-
-    bassSynthRef.current = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: 'sine' },
-      envelope: { attack: 0.002, decay: 0.5, sustain: 0.25, release: 0.3 },
-    }).toDestination();
-
-    rhythmSynthRef.current = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: 'square' },
-      envelope: { attack: 0.001, decay: 0.1, sustain: 0.05, release: 0.05 },
-    }).toDestination();
-
-    return () => {
-      melodySynthRef.current?.dispose();
-      melodySynthRef.current = null;
-      harmonySynthRef.current?.dispose();
-      harmonySynthRef.current = null;
-      bassSynthRef.current?.dispose();
-      bassSynthRef.current = null;
-      rhythmSynthRef.current?.dispose();
-      rhythmSynthRef.current = null;
-    };
-  }, []);
-
-  const playMajor = useCallback(async (key: string, stackHeight: number, boxCenterY: number) => {
-    if (Tone.getContext().state !== 'running') {
-      await Tone.start();
-    }
-
-    const containerHeight = containerRef.current?.clientHeight ?? 0;
-    const trackHeight = containerHeight > 0 ? containerHeight / 4 : 0;
-    const trackIndex = containerHeight > 0 ? Math.min(Math.max(Math.floor(boxCenterY / trackHeight), 0), 3) : 0;
-
-    const synth =
-      trackIndex === 0
-        ? melodySynthRef.current
-        : trackIndex === 1
-          ? harmonySynthRef.current
-          : trackIndex === 2
-            ? bassSynthRef.current
-            : rhythmSynthRef.current;
-
-    if (!synth) {
-      return;
-    }
-    const baseMidi = Tone.Frequency(key).toMidi();
-    const scaleDegrees = [0, 2, 4, 5, 7, 9, 11];
-    const degreeOffset = Math.max(stackHeight - 1, 0);
-    const semitoneOffset = scaleDegrees[degreeOffset % 7] + Math.floor(degreeOffset / 7) * 12;
-    const targetNote = Tone.Frequency(baseMidi + semitoneOffset, 'midi').toNote();
-    synth.triggerAttackRelease(targetNote, '8n');
-  }, []);
-
-  const playPentatonic = useCallback(async (key: string, stackHeight: number, boxCenterY: number) => {
-    if (Tone.getContext().state !== 'running') {
-      await Tone.start();
-    }
-
-    const containerHeight = containerRef.current?.clientHeight ?? 0;
-    const trackHeight = containerHeight > 0 ? containerHeight / 4 : 0;
-    const trackIndex = containerHeight > 0 ? Math.min(Math.max(Math.floor(boxCenterY / trackHeight), 0), 3) : 0;
-
-    const synth =
-      trackIndex === 0
-        ? melodySynthRef.current
-        : trackIndex === 1
-          ? harmonySynthRef.current
-          : trackIndex === 2
-            ? bassSynthRef.current
-            : rhythmSynthRef.current;
-
-    if (!synth) {
-      return;
-    }
-    const baseMidi = Tone.Frequency(key).toMidi();
-    const scaleDegrees = [0, 2, 4, 7, 9];
-    const degreeOffset = Math.max(stackHeight - 1, 0);
-    const semitoneOffset = scaleDegrees[degreeOffset % 5] + Math.floor(degreeOffset / 5) * 12;
-    const targetNote = Tone.Frequency(baseMidi + semitoneOffset, 'midi').toNote();
-    synth.triggerAttackRelease(targetNote, '8n');
-  }, []);
+  const majorMode = useMemo(() => new MajorMode(() => containerRef.current?.clientHeight ?? 0), []);
+  const pentatonicMode = useMemo(() => new PentatonicMode(() => containerRef.current?.clientHeight ?? 0), []);
 
   const playFunctions = useMemo(
     () => ({
-      Major: playMajor,
-      Pentatonic: playPentatonic,
+      Major: majorMode,
+      Pentatonic: pentatonicMode,
     }),
-    [playMajor, playPentatonic]
+    [majorMode, pentatonicMode]
   );
+
+  useEffect(() => {
+    majorMode.initialize();
+    pentatonicMode.initialize();
+
+    return () => {
+      majorMode.dispose();
+      pentatonicMode.dispose();
+    };
+  }, [majorMode, pentatonicMode]);
 
   const handlePlayEvent = useCallback(
     async (key: string, stackHeight: number, boxCenterY: number) => {
-      await playFunctions[compositionMode](key, stackHeight, boxCenterY);
+      await playFunctions[compositionMode].play(key, stackHeight, boxCenterY);
     },
     [compositionMode, playFunctions]
   );
@@ -322,7 +241,7 @@ function App() {
               key={track.label}
               className="track-section"
               style={{
-                top: `${index * 25}%`,
+                top: `${index * 25}%`,  
                 height: '25%',
                 background: track.color,
               }}
