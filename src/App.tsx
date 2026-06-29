@@ -26,8 +26,11 @@ function App() {
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [playheadPosition, setPlayheadPosition] = useState(0);
   const [currentKey] = useState('C4');
+  const [activeBoxId, setActiveBoxId] = useState<number | null>(null);
+  const [isOverTrash, setIsOverTrash] = useState(false);
   const offsetRef = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const trashRef = useRef<HTMLDivElement | null>(null);
   const boxesRef = useRef(boxes);
   const lastPlayheadXRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
@@ -99,23 +102,24 @@ function App() {
   }, []);
 
   const addBox = useCallback((x: number, y: number) => {
-    setBoxes((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        x,
-        y,
-        color: randomColor(),
-        stackHeight: 1,
-      },
-    ]);
+    const newBox = {
+      id: Date.now(),
+      x,
+      y,
+      color: randomColor(),
+      stackHeight: 1,
+    };
+
+    setBoxes((prev) => [...prev, newBox]);
+    return newBox.id;
   }, []);
 
   const handleContainerDoubleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - rect.left - 25;
     const y = event.clientY - rect.top - 25;
-    addBox(x, y);
+    const newBoxId = addBox(x, y);
+    setActiveBoxId(newBoxId);
     playNodeInKey(currentKey, 1, y + 25);
   };
 
@@ -144,16 +148,35 @@ function App() {
     setBoxes((prev) =>
       prev.map((box) => (box.id === draggingId ? { ...box, x: Math.max(0, Math.min(rect.width - 50, x)), y: Math.max(0, Math.min(rect.height - 50, y)) } : box))
     );
+
+    const trashRect = trashRef.current?.getBoundingClientRect();
+    const overTrash = Boolean(
+      trashRect && event.clientX >= trashRect.left && event.clientX <= trashRect.right && event.clientY >= trashRect.top && event.clientY <= trashRect.bottom
+    );
+    setIsOverTrash(overTrash);
   };
 
   const stopDrag = (event?: React.PointerEvent<HTMLDivElement>) => {
     if (event?.currentTarget) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
+
+    if (draggingId !== null && event && trashRef.current) {
+      const trashRect = trashRef.current.getBoundingClientRect();
+      const overTrash =
+        event.clientX >= trashRect.left && event.clientX <= trashRect.right && event.clientY >= trashRect.top && event.clientY <= trashRect.bottom;
+
+      if (overTrash) {
+        setBoxes((prev) => prev.filter((box) => box.id !== draggingId));
+      }
+    }
+
+    setIsOverTrash(false);
     setDraggingId(null);
   };
 
-  const handleBoxClick = (boxId: number) => {
+  const handleBoxClick = (event: React.MouseEvent<HTMLDivElement>, boxId: number) => {
+    event.stopPropagation();
     if (didDragRef.current) {
       didDragRef.current = false;
       return;
@@ -162,14 +185,21 @@ function App() {
     setBoxes((prev) => prev.map((box) => (box.id === boxId ? { ...box, stackHeight: (box.stackHeight % 8) + 1 } : box)));
   };
 
-  const handleBoxDoubleClick = (event: React.MouseEvent<HTMLDivElement>, boxId: number) => {
-    event.stopPropagation();
-    setBoxes((prev) => prev.filter((box) => box.id !== boxId));
-  };
-
   useEffect(() => {
     boxesRef.current = boxes;
   }, [boxes]);
+
+  useEffect(() => {
+    if (activeBoxId === null) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setActiveBoxId(null);
+    }, 180);
+
+    return () => window.clearTimeout(timer);
+  }, [activeBoxId]);
 
   useEffect(() => {
     let frameId = 0;
@@ -189,6 +219,7 @@ function App() {
       if (lastPlayheadXRef.current !== null) {
         boxesRef.current.forEach((box) => {
           if (lastPlayheadXRef.current! < box.x && playheadX >= box.x) {
+            setActiveBoxId(box.id);
             void playNodeInKey(currentKey, box.stackHeight, box.y + 25);
           }
         });
@@ -255,14 +286,15 @@ function App() {
         {boxes.map((box) => (
           <div
             key={box.id}
-            className="box"
+            className={`box${activeBoxId === box.id ? ' is-playing' : ''}`}
             style={{
               position: 'absolute',
               left: box.x,
               top: box.y,
               width: 50,
               height: 50,
-              background: box.color,
+              ['--box-color' as string]: box.color,
+              background: 'var(--box-color)',
               cursor: 'grab',
               display: 'flex',
               alignItems: 'center',
@@ -275,8 +307,8 @@ function App() {
               zIndex: 1,
             }}
             onPointerDown={(event) => beginDrag(event, box)}
-            onClick={() => handleBoxClick(box.id)}
-            onDoubleClick={(event) => handleBoxDoubleClick(event, box.id)}
+            onClick={(event) => handleBoxClick(event, box.id)}
+            onDoubleClick={(event) => event.stopPropagation()}
             onPointerMove={handleDrag}
             onPointerUp={stopDrag}
             onPointerCancel={stopDrag}
@@ -284,6 +316,11 @@ function App() {
             {box.stackHeight}
           </div>
         ))}
+      </div>
+      <div ref={trashRef} className={`trash-zone${isOverTrash ? ' is-active' : ''}`}>
+        <span className="trash-icon" aria-hidden="true">
+          🗑️
+        </span>
       </div>
     </div>
   );
