@@ -34,7 +34,7 @@ Let's try a new approach of making a client side browser synthesizer. generate a
 Refactor this page to use react with typescript, and update NOTES.md
 
 Update App.tsx with the following: Add a large full width container div to the center of the page. Within the div, if you double click, a 50x50 px square div or a random color is added centered on where you clicked. If you drag the square div, you can drag it around inside the container div.
-
+--
 I am building a sime web based sequencer. In App.tsx the user can place a set of boxes. Add a 1 pixel wide green line that is the same height as the container div. Animate this line to move from left to right. It should take 8 seconds. Once it reaches the left side it should loop. It's position should be a state variable that we'll use later.
 
 For the next step, we'll need the x position of the green line and the x position of the left side of each square. Update the code such that when the green line passes the left edge of each square, a random note is played between C3 and C5.
@@ -50,3 +50,9 @@ Similarly, drag release should not trigger a click that increments stackHeight.
 Add a state variable called currentKey. Replace #sym:playRandomNote with playNodeInKey. playNodeInKey takes the current key, adds the number of scale degrees equal to the stackHeightof this square, and plays that note.
 
 Over time, the current code starts using more resources and creating sound processing chirps. update this to use best practices for resource allocation for Tone.js synthisizers.
+--
+We're creating a synth UI that operates in a browser: squares represent notes, and a green sweeping line represents where we are in the timeline, from left to right.  Now we're adding a new feature: tracks. For the first step, inside the container div, and under the set of squares, add four sections, each 25% of the height and 100% of the width.  The top section should be dark green with the word "Melody" in grey in the top left. The next section should be dark yellow with the word "Harmony" in grey in the top left. The next section should be dark orange with the word "Bass" in grey in the top left. The last section should be dark blue with the word "Rhythm" in grey in the top left.
+
+Now we are going to treat the behavior of squares in each track differently based on their centerpoint.  First let's give each track its own sound.  Instead of a single synthRef, create four: melodySynthRef, harmonySynthRef, bassSynthRef, and rhythmSynthRef.  For each synthRef, create an appropriate Tone.PolySynth.  In #sym:playNodeInKey , if the center of the square falls within the melody, harmony, bass, or rhythm track, play the corrisponding synth sound.
+
+When I doulble click, the word "melody" is selected. Use CSS to turn off text selection for this page.

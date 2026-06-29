@@ -3,6 +3,10 @@ body {
   font-family: Arial, sans-serif;
   background: #111827;
   color: #f9fafb;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 #root {

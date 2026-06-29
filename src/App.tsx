@@ -31,26 +31,62 @@ function App() {
   const boxesRef = useRef(boxes);
   const lastPlayheadXRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
-  const synthRef = useRef<Tone.PolySynth<Tone.Synth> | null>(null);
+  const melodySynthRef = useRef<Tone.PolySynth<Tone.Synth> | null>(null);
+  const harmonySynthRef = useRef<Tone.PolySynth<Tone.Synth> | null>(null);
+  const bassSynthRef = useRef<Tone.PolySynth<Tone.Synth> | null>(null);
+  const rhythmSynthRef = useRef<Tone.PolySynth<Tone.Synth> | null>(null);
 
   useEffect(() => {
-    synthRef.current = new Tone.PolySynth(Tone.Synth, {
+    melodySynthRef.current = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: 'triangle' },
       envelope: { attack: 0.005, decay: 0.4, sustain: 0.2, release: 0.2 },
     }).toDestination();
 
+    harmonySynthRef.current = new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: 'sawtooth' },
+      envelope: { attack: 0.01, decay: 0.35, sustain: 0.15, release: 0.2 },
+    }).toDestination();
+
+    bassSynthRef.current = new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: 'sine' },
+      envelope: { attack: 0.002, decay: 0.5, sustain: 0.25, release: 0.3 },
+    }).toDestination();
+
+    rhythmSynthRef.current = new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: 'square' },
+      envelope: { attack: 0.001, decay: 0.1, sustain: 0.05, release: 0.05 },
+    }).toDestination();
+
     return () => {
-      synthRef.current?.dispose();
-      synthRef.current = null;
+      melodySynthRef.current?.dispose();
+      melodySynthRef.current = null;
+      harmonySynthRef.current?.dispose();
+      harmonySynthRef.current = null;
+      bassSynthRef.current?.dispose();
+      bassSynthRef.current = null;
+      rhythmSynthRef.current?.dispose();
+      rhythmSynthRef.current = null;
     };
   }, []);
 
-  const playNodeInKey = useCallback(async (key: string, stackHeight: number) => {
+  const playNodeInKey = useCallback(async (key: string, stackHeight: number, boxCenterY: number) => {
     if (Tone.getContext().state !== 'running') {
       await Tone.start();
     }
 
-    const synth = synthRef.current;
+    const containerHeight = containerRef.current?.clientHeight ?? 0;
+    const trackHeight = containerHeight > 0 ? containerHeight / 4 : 0;
+    const trackIndex = containerHeight > 0 ? Math.min(Math.max(Math.floor(boxCenterY / trackHeight), 0), 3) : 0;
+
+    const synth =
+      trackIndex === 0
+        ? melodySynthRef.current
+        : trackIndex === 1
+          ? harmonySynthRef.current
+          : trackIndex === 2
+            ? bassSynthRef.current
+            : rhythmSynthRef.current;
+
     if (!synth) {
       return;
     }
@@ -80,7 +116,7 @@ function App() {
     const x = event.clientX - rect.left - 25;
     const y = event.clientY - rect.top - 25;
     addBox(x, y);
-    playNodeInKey(currentKey, 1);
+    playNodeInKey(currentKey, 1, y + 25);
   };
 
   const beginDrag = (event: React.PointerEvent<HTMLDivElement>, box: Box) => {
@@ -153,7 +189,7 @@ function App() {
       if (lastPlayheadXRef.current !== null) {
         boxesRef.current.forEach((box) => {
           if (lastPlayheadXRef.current! < box.x && playheadX >= box.x) {
-            void playNodeInKey(currentKey, box.stackHeight);
+            void playNodeInKey(currentKey, box.stackHeight, box.y + 25);
           }
         });
       }
