@@ -5,10 +5,11 @@ export class MajorMode {
   private harmonySynth: Tone.PolySynth<Tone.Synth> | null = null;
   private bassSynth: Tone.PolySynth<Tone.Synth> | null = null;
   private rhythmSynth: Tone.PolySynth<Tone.Synth> | null = null;
+  private containerHeight: number;
 
-  constructor(private readonly getContainerHeight: () => number) {}
+  constructor(containerHeight: number) {
+    this.containerHeight = containerHeight;
 
-  initialize() {
     this.melodySynth = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: 'triangle' },
       envelope: { attack: 0.005, decay: 0.4, sustain: 0.2, release: 0.2 },
@@ -46,9 +47,8 @@ export class MajorMode {
       await Tone.start();
     }
 
-    const containerHeight = this.getContainerHeight();
-    const trackHeight = containerHeight > 0 ? containerHeight / 4 : 0;
-    const trackIndex = containerHeight > 0 ? Math.min(Math.max(Math.floor(boxCenterY / trackHeight), 0), 3) : 0;
+    const trackHeight = this.containerHeight > 0 ? this.containerHeight / 4 : 0;
+    const trackIndex = this.containerHeight > 0 ? Math.min(Math.max(Math.floor(boxCenterY / trackHeight), 0), 3) : 0;
 
     const synth =
       trackIndex === 0

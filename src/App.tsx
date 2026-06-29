@@ -27,7 +27,7 @@ function App() {
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [playheadPosition, setPlayheadPosition] = useState(0);
   const [currentKey] = useState('C4');
-  const [compositionMode, setCompositionMode] = useState<'Major' | 'Pentatonic'>('Major');
+  const [compositionMode, setCompositionMode] = useState<string>(MajorMode.name);
   const [activeBoxId, setActiveBoxId] = useState<number | null>(null);
   const [isOverTrash, setIsOverTrash] = useState(false);
   const offsetRef = useRef({ x: 0, y: 0 });
@@ -36,33 +36,41 @@ function App() {
   const boxesRef = useRef(boxes);
   const lastPlayheadXRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
-
-  const majorMode = useMemo(() => new MajorMode(() => containerRef.current?.clientHeight ?? 0), []);
-  const pentatonicMode = useMemo(() => new PentatonicMode(() => containerRef.current?.clientHeight ?? 0), []);
-
-  const playFunctions = useMemo(
-    () => ({
-      Major: majorMode,
-      Pentatonic: pentatonicMode,
-    }),
-    [majorMode, pentatonicMode]
-  );
+  const [containerHeight, setContainerHeight] = useState(0);
 
   useEffect(() => {
-    majorMode.initialize();
-    pentatonicMode.initialize();
+    const updateContainerHeight = () => {
+      setContainerHeight(containerRef.current?.clientHeight ?? 0);
+    };
+
+    updateContainerHeight();
+    window.addEventListener('resize', updateContainerHeight);
 
     return () => {
-      majorMode.dispose();
-      pentatonicMode.dispose();
+      window.removeEventListener('resize', updateContainerHeight);
     };
-  }, [majorMode, pentatonicMode]);
+  }, []);
+
+  const playModes = [MajorMode, PentatonicMode] as const;
+
+  const playModeMap = useMemo(() => {
+    return playModes.reduce<Record<string, MajorMode | PentatonicMode>>((acc, Mode) => {
+      acc[Mode.name] = new Mode(containerHeight);
+      return acc;
+    }, {});
+  }, [containerHeight]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(playModeMap).forEach((mode) => mode.dispose());
+    };
+  }, [playModeMap]);
 
   const handlePlayEvent = useCallback(
     async (key: string, stackHeight: number, boxCenterY: number) => {
-      await playFunctions[compositionMode].play(key, stackHeight, boxCenterY);
+      await playModeMap[compositionMode].play(key, stackHeight, boxCenterY);
     },
-    [compositionMode, playFunctions]
+    [compositionMode, playModeMap]
   );
 
   const addBox = useCallback((x: number, y: number) => {
@@ -219,20 +227,16 @@ function App() {
   return (
     <div className="app">
       <div className="composition-controls" role="group" aria-label="Composition mode">
-        <button
-          type="button"
-          className={`composition-mode-button${compositionMode === 'Major' ? ' is-active' : ''}`}
-          onClick={() => setCompositionMode('Major')}
-        >
-          Major
-        </button>
-        <button
-          type="button"
-          className={`composition-mode-button${compositionMode === 'Pentatonic' ? ' is-active' : ''}`}
-          onClick={() => setCompositionMode('Pentatonic')}
-        >
-          Pentatonic
-        </button>
+        {Object.entries(playModeMap).map(([modeName]) => (
+          <button
+            key={modeName}
+            type="button"
+            className={`composition-mode-button${compositionMode === modeName ? ' is-active' : ''}`}
+            onClick={() => setCompositionMode(modeName)}
+          >
+            {modeName.slice(0, -4)}
+          </button>
+        ))}
       </div>
       <div ref={containerRef} className="container" style={containerStyle} onDoubleClick={handleContainerDoubleClick}>
         <div className="track-layer" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
