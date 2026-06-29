@@ -24,16 +24,29 @@ function App() {
   const boxesRef = useRef(boxes);
   const lastPlayheadXRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
+  const synthRef = useRef<Tone.PolySynth<Tone.Synth> | null>(null);
 
-  const playCQuarterNote = useCallback(async () => {
-    await Tone.start();
-    const synth = new Tone.Synth().toDestination();
-    synth.triggerAttackRelease('C4', '4n');
+  useEffect(() => {
+    synthRef.current = new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: 'triangle' },
+      envelope: { attack: 0.005, decay: 0.4, sustain: 0.2, release: 0.2 },
+    }).toDestination();
+
+    return () => {
+      synthRef.current?.dispose();
+      synthRef.current = null;
+    };
   }, []);
 
   const playNodeInKey = useCallback(async (key: string, stackHeight: number) => {
-    await Tone.start();
-    const synth = new Tone.Synth().toDestination();
+    if (Tone.getContext().state !== 'running') {
+      await Tone.start();
+    }
+
+    const synth = synthRef.current;
+    if (!synth) {
+      return;
+    }
     const baseMidi = Tone.Frequency(key).toMidi();
     const scaleDegrees = [0, 2, 4, 5, 7, 9, 11];
     const degreeOffset = Math.max(stackHeight - 1, 0);
@@ -60,7 +73,7 @@ function App() {
     const x = event.clientX - rect.left - 25;
     const y = event.clientY - rect.top - 25;
     addBox(x, y);
-    playCQuarterNote();
+    playNodeInKey(currentKey, 1);
   };
 
   const beginDrag = (event: React.PointerEvent<HTMLDivElement>, box: Box) => {

@@ -48,3 +48,5 @@ The double click on a square should only delete the square you double clicke on,
 Similarly, drag release should not trigger a click that increments stackHeight.
 
 Add a state variable called currentKey. Replace #sym:playRandomNote with playNodeInKey. playNodeInKey takes the current key, adds the number of scale degrees equal to the stackHeightof this square, and plays that note.
+
+Over time, the current code starts using more resources and creating sound processing chirps. update this to use best practices for resource allocation for Tone.js synthisizers.
