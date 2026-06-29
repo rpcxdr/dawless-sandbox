@@ -14,6 +14,13 @@ function randomColor() {
   return `hsl(${hue} 90% 70%)`;
 }
 
+const trackSections = [
+  { label: 'Melody', color: '#0f3d1f' },
+  { label: 'Harmony', color: '#5c4a00' },
+  { label: 'Bass', color: '#7a3300' },
+  { label: 'Rhythm', color: '#0f2c4e' },
+];
+
 function App() {
   const [boxes, setBoxes] = useState<Box[]>([]);
   const [draggingId, setDraggingId] = useState<number | null>(null);
@@ -181,6 +188,21 @@ function App() {
   return (
     <div className="app">
       <div ref={containerRef} className="container" style={containerStyle} onDoubleClick={handleContainerDoubleClick}>
+        <div className="track-layer" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
+          {trackSections.map((track, index) => (
+            <div
+              key={track.label}
+              className="track-section"
+              style={{
+                top: `${index * 25}%`,
+                height: '25%',
+                background: track.color,
+              }}
+            >
+              <span className="track-label">{track.label}</span>
+            </div>
+          ))}
+        </div>
         <div
           style={{
             position: 'absolute',
@@ -191,6 +213,7 @@ function App() {
             background: 'green',
             transform: 'translateX(-50%)',
             pointerEvents: 'none',
+            zIndex: 2,
           }}
         />
         {boxes.map((box) => (
@@ -213,6 +236,7 @@ function App() {
               fontSize: 22,
               userSelect: 'none',
               textShadow: '0 0 2px rgba(255,255,255,0.55)',
+              zIndex: 1,
             }}
             onPointerDown={(event) => beginDrag(event, box)}
             onClick={() => handleBoxClick(box.id)}
