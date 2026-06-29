@@ -1,0 +1,48 @@
+# Install:
+
+# Create a local virtual environment for the project
+C:/Users/[User]/AppData/Local/Microsoft/WindowsApps/python3.13.exe -m venv .venv
+
+# Activate the venv in PowerShell
+.\.venv\Scripts\Activate.ps1
+
+# Install the Spotify Pedalboard package
+python -m pip install --upgrade pip
+python -m pip install pedalboard
+
+# Run the example script
+python play_quarter_notes.py
+
+# React + TypeScript browser synth with Tone.js
+# Install Node.js first if needed: https://nodejs.org/
+
+# From this folder, install the app dependencies
+npm install
+
+# Start the Vite dev server
+npm run dev
+
+# Then open:
+# http://127.0.0.1:5173/
+
+# Prompts:
+### Attempt to generate sound on the server side:
+Generate a simple python script that uses Spotify's pedalboard to generate play four quarter notes, C E G C. These should be audible on my wondows 11 box. Use **pedalboard.io.AudioStream** so that, later, we can add some realtime controls.
+### Attempt to generate sound on the client side:
+Let's try a new approach of making a client side browser synthesizer. generate a web page with a single button that plays a C quarter note when you click a button using tone.js. Add a new section to NOTES.md that describes how to install any needed packages and start the web server.
+
+Refactor this page to use react with typescript, and update NOTES.md
+
+Update App.tsx with the following: Add a large full width container div to the center of the page. Within the div, if you double click, a 50x50 px square div or a random color is added centered on where you clicked. If you drag the square div, you can drag it around inside the container div.
+
+I am building a sime web based sequencer. In App.tsx the user can place a set of boxes. Add a 1 pixel wide green line that is the same height as the container div. Animate this line to move from left to right. It should take 8 seconds. Once it reaches the left side it should loop. It's position should be a state variable that we'll use later.
+
+For the next step, we'll need the x position of the green line and the x position of the left side of each square. Update the code such that when the green line passes the left edge of each square, a random note is played between C3 and C5.
+
+Make the following changes: For each square, add a number called stackHeight to it's state. Display this number in the center of each square. If you click on the square, increment it's stackHeight mod 8. stackHeight deafults to 1.
+
+If you double click on a square, delete it. Make the random square colors very bright, and make the stackHeight number black and larger.
+
+The double click on a square should only delete the square you double clicke on, and it should not create a new square. Currently it does both.
+
+Similarly, drag release should not trigger a click that increments stackHeight.
