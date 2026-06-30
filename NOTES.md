@@ -72,3 +72,13 @@ Create a file for each composition mode.  In each file create one class: MajorMo
 Look at lines 40 through 59: it seems like a lot of code. Can we tighten this up? (1) use constructor() instead of #sym:initialize The constructor should take the container height as a parameter, and containerHeight should be a normal private class member variable, lke the others. (2) Create an array called playModes = [MajorMode, PentatonicMode]. (3) Change playFunctions into playModeMap: Change the array of playModes class objects using reduce() into a map from class name strings to class instances (passing the height into the constructors).
 
 Refactor #sym:compositionMode  to be more dynamic: Allow it to be any string.  Refactor the "Composition mode" buttons to, instead, use the instances in #sym:playModeMap .  For each instance in the map, create the button, and use the name of the class in three places: the composition-mode-button className, the #sym:setCompositionMode  parameter, and the the text that the user sees. 
+
+How do I fix this error? Already included file name 'c:/dev/dawless-sandbox/src/modes/keyAndModeControlMode.ts' differs from file name 'c:/dev/dawless-sandbox/src/modes/KeyAndModeControlMode.ts' only in casing.
+  The file is in the program because:
+    Imported via './modes/keyAndModeControlMode' from file 'c:/dev/dawless-sandbox/src/App.tsx'
+    Matched by include pattern 'src' in 'c:/dev/dawless-sandbox/tsconfig.app.json'ts(1261)[tsconfig.app.json(19, 15):]()File is matched by include pattern specified here.
+
+Create a superclass for the Mode classes, and change 
+return playModes.reduce<Record<string, MajorMode | PentatonicMode>>((acc, Mode) 
+To allow an instance of any of these subclasses
+

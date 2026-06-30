@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MajorMode } from './modes/majorMode';
 import { PentatonicMode } from './modes/pentatonicMode';
+import { KeyAndModeControlMode } from './modes/keyAndModeControlMode'
+import { ModeBase } from './modes/modeBase';
 
 type Box = {
   id: number;
@@ -51,10 +53,10 @@ function App() {
     };
   }, []);
 
-  const playModes = [MajorMode, PentatonicMode] as const;
+  const playModes = [MajorMode, PentatonicMode, KeyAndModeControlMode] as const;
 
   const playModeMap = useMemo(() => {
-    return playModes.reduce<Record<string, MajorMode | PentatonicMode>>((acc, Mode) => {
+    return playModes.reduce<Record<string, ModeBase>>((acc, Mode) => {
       acc[Mode.name] = new Mode(containerHeight);
       return acc;
     }, {});

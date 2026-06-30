@@ -1,12 +1,12 @@
 import * as Tone from 'tone';
 import { ModeBase } from './modeBase';
 
-export class MajorMode extends ModeBase {
+export class KeyAndModeControlMode  extends ModeBase {
   private melodySynth: Tone.PolySynth<Tone.Synth> | null = null;
   private harmonySynth: Tone.PolySynth<Tone.Synth> | null = null;
   private bassSynth: Tone.PolySynth<Tone.Synth> | null = null;
   private rhythmSynth: Tone.PolySynth<Tone.Synth> | null = null;
-  protected readonly modeName = 'MajorMode';
+  protected readonly modeName = 'KeyAndModeControl';
 
   constructor(containerHeight: number) {
     super(containerHeight);
@@ -65,9 +65,9 @@ export class MajorMode extends ModeBase {
     }
 
     const baseMidi = Tone.Frequency(key).toMidi();
-    const scaleDegrees = [0, 2, 4, 5, 7, 9, 11];
+    const scaleDegrees = [9, 2, 4, 7, 9];
     const degreeOffset = Math.max(stackHeight - 1, 0);
-    const semitoneOffset = scaleDegrees[degreeOffset % 7] + Math.floor(degreeOffset / 7) * 12;
+    const semitoneOffset = scaleDegrees[degreeOffset % 5] + Math.floor(degreeOffset / 5) * 12;
     const targetNote = Tone.Frequency(baseMidi + semitoneOffset, 'midi').toNote();
     synth.triggerAttackRelease(targetNote, '8n');
   }

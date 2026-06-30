@@ -1,14 +1,15 @@
 import * as Tone from 'tone';
+import { ModeBase } from './modeBase';
 
-export class PentatonicMode {
+export class PentatonicMode extends ModeBase {
   private melodySynth: Tone.PolySynth<Tone.Synth> | null = null;
   private harmonySynth: Tone.PolySynth<Tone.Synth> | null = null;
   private bassSynth: Tone.PolySynth<Tone.Synth> | null = null;
   private rhythmSynth: Tone.PolySynth<Tone.Synth> | null = null;
-  private containerHeight: number;
+  protected readonly modeName = 'PentatonicMode';
 
   constructor(containerHeight: number) {
-    this.containerHeight = containerHeight;
+    super(containerHeight);
 
     this.melodySynth = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: 'triangle' },
