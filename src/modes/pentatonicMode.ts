@@ -1,5 +1,6 @@
 import * as Tone from 'tone';
 import { ModeBase } from './modeBase';
+import { Box } from '../box';
 
 export class PentatonicMode extends ModeBase {
   private melodySynth: Tone.PolySynth<Tone.Synth> | null = null;
@@ -43,7 +44,7 @@ export class PentatonicMode extends ModeBase {
     this.rhythmSynth = null;
   }
 
-  async play(box: any, boxes: any) {
+  async play(box: Box, boxes: Box[]) {
     if (Tone.getContext().state !== 'running') {
       await Tone.start();
     }

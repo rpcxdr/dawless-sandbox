@@ -1,5 +1,31 @@
 import * as Tone from 'tone';
 import { ModeBase } from './modeBase';
+import { Box } from '../box';
+import { findMostRecentBox } from '../boxUtils';
+
+const circleOfFifths = [60, 67, 62, 69, 64, 71, 66, 61, 68, 63, 70, 65];
+
+/*const modes = [
+  [0,2,4,5,7,9,11], // 0 Ionian
+  [0,2,3,5,7,9,10], // 1 Dorian
+  [0,1,3,5,7,8,10], // 2 Phrygian
+  [0,2,4,6,7,9,11], // 3 Lydian
+  [0,2,4,5,7,9,10], // 4 Mixolydian
+  [0,2,3,5,7,8,10], // 5 Aeolian
+  [0,1,3,5,6,8,10]  // 6 Locrian
+];*/
+const modes = [ // Ordered by popularity in Western music
+  [0,2,4,5,7,9,10], // 4 Mixolydian
+  [0,2,4,5,7,9,11], // 0 Ionian
+  [0,2,3,5,7,8,10], // 5 Aeolian
+  [0,2,3,5,7,9,10], // 1 Dorian
+  [0,1,3,5,7,8,10], // 2 Phrygian
+  [0,2,4,6,7,9,11], // 3 Lydian
+  [0,1,3,5,6,8,10]  // 6 Locrian
+];
+
+const harmonyScaleDegrees = [0, 2, 4, 5, 7, 9, 11];
+
 
 export class KeyAndModeControlMode  extends ModeBase {
   private melodySynth: Tone.PolySynth<Tone.Synth> | null = null;
@@ -18,7 +44,7 @@ export class KeyAndModeControlMode  extends ModeBase {
 
     this.harmonySynth = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: 'sawtooth' },
-      envelope: { attack: 0.01, decay: 0.35, sustain: 0.15, release: 0.2 },
+      envelope: { attack: 0.01, decay: 2.0, sustain: 0.01, release: 0.2 },
     }).toDestination();
 
     this.bassSynth = new Tone.PolySynth(Tone.Synth, {
@@ -43,12 +69,11 @@ export class KeyAndModeControlMode  extends ModeBase {
     this.rhythmSynth = null;
   }
 
-  async play(box: any, boxes: any) {
+  async play(box: Box, boxes: Box[]) {
     if (Tone.getContext().state !== 'running') {
       await Tone.start();
     }
 
-    const key = 'C4';
     const stackHeight = box.stackHeight;
     const boxCenterY = box.y + 25;
 
@@ -68,11 +93,41 @@ export class KeyAndModeControlMode  extends ModeBase {
       return;
     }
 
-    const baseMidi = Tone.Frequency(key).toMidi();
-    const scaleDegrees = [9, 2, 4, 7, 9];
-    const degreeOffset = Math.max(stackHeight - 1, 0);
-    const semitoneOffset = scaleDegrees[degreeOffset % 5] + Math.floor(degreeOffset / 5) * 12;
-    const targetNote = Tone.Frequency(baseMidi + semitoneOffset, 'midi').toNote();
-    synth.triggerAttackRelease(targetNote, '8n');
+    if (trackIndex === 0 ) {
+      const bassStackHeight = findMostRecentBox(boxes, box, 2, this.containerHeight)?.stackHeight || 1;
+      const bassRootMidi = circleOfFifths[(bassStackHeight-1) % 12];
+
+      const harmonyStackHeight = findMostRecentBox(boxes, box, 1, this.containerHeight)?.stackHeight || 1;
+      const harmonyScaleDegrees = modes[(harmonyStackHeight-1) % 7];
+
+
+      const degreeOffset = Math.max(stackHeight - 1, 0);
+      const semitoneOffset = harmonyScaleDegrees[degreeOffset % 7] + Math.floor(degreeOffset / 7) * 12;
+      
+      const targetMidi = bassRootMidi + semitoneOffset;
+
+      const targetNote = Tone.Frequency(targetMidi, 'midi').toNote();
+      synth.triggerAttackRelease(targetNote, '8n');
+    } else if (trackIndex === 1) {
+      const bassStackHeight = findMostRecentBox(boxes, box, 2, this.containerHeight)?.stackHeight || 1;
+      const bassRootMidi = circleOfFifths[(bassStackHeight-1) % 12];
+
+      const harmonyScaleDegrees = modes[(stackHeight-1) % 7];
+
+      const chordDegrees = [0, 2, 4]; // Triad: root, third, fifth
+      //const chordDegrees = [0, 2, 4, 6, 8]; // Triad: root, third, fifth
+      for(const chordDegree of chordDegrees) {
+        const semitoneOffset = harmonyScaleDegrees[chordDegree % 7] + Math.floor(chordDegree / 7) * 12;
+        const targetMidi = bassRootMidi + semitoneOffset;
+        const targetNote = Tone.Frequency(targetMidi, 'midi').toNote();
+        synth.triggerAttackRelease(targetNote, '2n');
+      }
+    } else {
+      const targetMidi = circleOfFifths[(stackHeight-1) % 12];
+      const targetNote = Tone.Frequency(targetMidi, 'midi').toNote();
+      synth.triggerAttackRelease(targetNote, '8n');
+    }
+
+ 
   }
 }

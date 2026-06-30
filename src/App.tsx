@@ -3,14 +3,7 @@ import { MajorMode } from './modes/majorMode';
 import { PentatonicMode } from './modes/pentatonicMode';
 import { KeyAndModeControlMode } from './modes/keyAndModeControlMode'
 import { ModeBase } from './modes/modeBase';
-
-type Box = {
-  id: number;
-  x: number;
-  y: number;
-  color: string;
-  stackHeight: number;
-};
+import { Box } from './box';
 
 function randomColor() {
   const hue = Math.floor(Math.random() * 360);
