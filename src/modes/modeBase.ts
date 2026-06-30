@@ -4,7 +4,7 @@ export abstract class ModeBase {
 
   constructor(protected readonly containerHeight: number) {}
 
-  abstract play(key: string, stackHeight: number, boxCenterY: number): Promise<void>;
+  abstract play(box: any, boxes: any): Promise<void>;
 
   dispose() {
     // subclasses may override if needed

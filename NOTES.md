@@ -82,3 +82,6 @@ Create a superclass for the Mode classes, and change
 return playModes.reduce<Record<string, MajorMode | PentatonicMode>>((acc, Mode) 
 To allow an instance of any of these subclasses
 
+--
+
+We are developing a web page music sequencer controlled by a set of squares.  We are going to make a series of changes to KeyAndModeControlMode to allow notes from one track effect other tracks. For the first step, refactor the ModeBase play() function and all of the sub-classes to accept only two parameters: a first parameter of a Box (which containes the stackHeight and y), and a second parameter of the boxes object.  Within each subclass, hard code currentKey to "C4".  In App.tsx, refactor refrences to handlePlayEvent to only pass in a Box instance.  Refactor addBox to return the new box instance instead of the id.

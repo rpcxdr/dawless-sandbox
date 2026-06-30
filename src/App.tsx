@@ -69,14 +69,14 @@ function App() {
   }, [playModeMap]);
 
   const handlePlayEvent = useCallback(
-    async (key: string, stackHeight: number, boxCenterY: number) => {
-      await playModeMap[compositionMode].play(key, stackHeight, boxCenterY);
+    async (box: Box) => {
+      await playModeMap[compositionMode].play(box, boxes);
     },
-    [compositionMode, playModeMap]
+    [compositionMode, playModeMap, boxes]
   );
 
   const addBox = useCallback((x: number, y: number) => {
-    const newBox = {
+    const newBox: Box = {
       id: Date.now(),
       x,
       y,
@@ -85,16 +85,16 @@ function App() {
     };
 
     setBoxes((prev) => [...prev, newBox]);
-    return newBox.id;
+    return newBox;
   }, []);
 
   const handleContainerDoubleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - rect.left - 25;
     const y = event.clientY - rect.top - 25;
-    const newBoxId = addBox(x, y);
-    setActiveBoxId(newBoxId);
-    handlePlayEvent(currentKey, 1, y + 25);
+    const newBox = addBox(x, y);
+    setActiveBoxId(newBox.id);
+    handlePlayEvent(newBox);
   };
 
   const beginDrag = (event: React.PointerEvent<HTMLDivElement>, box: Box) => {
@@ -194,7 +194,7 @@ function App() {
         boxesRef.current.forEach((box) => {
           if (lastPlayheadXRef.current! < box.x && playheadX >= box.x) {
             setActiveBoxId(box.id);
-            void handlePlayEvent(currentKey, box.stackHeight, box.y + 25);
+            void handlePlayEvent(box);
           }
         });
       }

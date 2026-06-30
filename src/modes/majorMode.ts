@@ -43,10 +43,14 @@ export class MajorMode extends ModeBase {
     this.rhythmSynth = null;
   }
 
-  async play(key: string, stackHeight: number, boxCenterY: number) {
+  async play(box: any, boxes: any) {
     if (Tone.getContext().state !== 'running') {
       await Tone.start();
     }
+
+    const key = 'C4';
+    const stackHeight = box.stackHeight;
+    const boxCenterY = box.y + 25;
 
     const trackHeight = this.containerHeight > 0 ? this.containerHeight / 4 : 0;
     const trackIndex = this.containerHeight > 0 ? Math.min(Math.max(Math.floor(boxCenterY / trackHeight), 0), 3) : 0;
