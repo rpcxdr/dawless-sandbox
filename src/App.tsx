@@ -113,7 +113,9 @@ function App() {
     const y = event.clientY - rect.top - offsetRef.current.y;
 
     setBoxes((prev) =>
-      prev.map((box) => (box.id === draggingId ? { ...box, x: Math.max(0, Math.min(rect.width - 50, x)), y: Math.max(0, Math.min(rect.height - 50, y)) } : box))
+      prev.map((box) => (box.id === draggingId ? { ...box, 
+        x: Math.max(0, Math.min(rect.width - 50, x)), 
+        y: Math.max(0, Math.min(rect.height - 50, y)) } : box))
     );
 
     const trashRect = trashRef.current?.getBoundingClientRect();
