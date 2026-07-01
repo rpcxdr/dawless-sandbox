@@ -45,10 +45,6 @@ export class MajorMode extends ModeBase {
   }
 
   async play(box: Box, boxes: Box[]) {
-    if (Tone.getContext().state !== 'running') {
-      await Tone.start();
-    }
-
     const key = 'C4';
     const stackHeight = box.stackHeight;
     const boxCenterY = box.y + 25;

@@ -31,7 +31,7 @@ export class KeyAndModeControlMode  extends ModeBase {
   private melodySynth: Tone.PolySynth<Tone.Synth> | null = null;
   private harmonySynth: Tone.PolySynth<Tone.Synth> | null = null;
   private bassSynth: Tone.PolySynth<Tone.Synth> | null = null;
-  private rhythmSynth: Tone.PolySynth<Tone.Synth> | null = null;
+  private rhythmSynth: Tone.Sampler | null = null;
   protected readonly modeName = 'KeyAndModeControl';
 
   constructor(containerHeight: number) {
@@ -52,9 +52,19 @@ export class KeyAndModeControlMode  extends ModeBase {
       envelope: { attack: 0.002, decay: 0.5, sustain: 0.25, release: 0.3 },
     }).toDestination();
 
-    this.rhythmSynth = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: 'square' },
-      envelope: { attack: 0.001, decay: 0.1, sustain: 0.05, release: 0.05 },
+    this.rhythmSynth = new Tone.Sampler({
+      urls: {
+        1: 'soundreality-hi-hat-closed-acoustic-sample-455286.mp3',
+        9: 'soundreality-kick-drum-acoustic-sample-455285.mp3',
+        17: 'freesound_community-sfx-dirty-growl-4-86556.mp3',
+        25: 'freesound_community-dub-bass-93977.mp3',
+        33: 'freesound_community-ambience-85751.mp3',
+        34: 'freesound_community-straigh-up-n-down-90427.mp3',
+      },
+      baseUrl: '/rhythm/',
+      onload: () => {
+        // Sampler loaded; samples can be replaced later with actual audio files.
+      },
     }).toDestination();
   }
 
@@ -70,10 +80,6 @@ export class KeyAndModeControlMode  extends ModeBase {
   }
 
   async play(box: Box, boxes: Box[]) {
-    if (Tone.getContext().state !== 'running') {
-      await Tone.start();
-    }
-
     const stackHeight = box.stackHeight;
     const boxCenterY = box.y + 25;
 
@@ -122,12 +128,13 @@ export class KeyAndModeControlMode  extends ModeBase {
         const targetNote = Tone.Frequency(targetMidi, 'midi').toNote();
         synth.triggerAttackRelease(targetNote, '2n');
       }
-    } else {
+    } else if (trackIndex === 2) {
       const targetMidi = circleOfFifths[(stackHeight-1) % 12];
       const targetNote = Tone.Frequency(targetMidi, 'midi').toNote();
       synth.triggerAttackRelease(targetNote, '8n');
-    }
-
- 
+    } else if (trackIndex === 3) {
+      const targetNote = stackHeight*8;
+      synth.triggerAttackRelease(targetNote, '1n');
+    } 
   }
 }

@@ -85,3 +85,13 @@ To allow an instance of any of these subclasses
 --
 
 We are developing a web page music sequencer controlled by a set of squares.  We are going to make a series of changes to KeyAndModeControlMode to allow notes from one track effect other tracks. For the first step, refactor the ModeBase play() function and all of the sub-classes to accept only two parameters: a first parameter of a Box (which containes the stackHeight and y), and a second parameter of the boxes object.  Within each subclass, hard code currentKey to "C4".  In App.tsx, refactor refrences to handlePlayEvent to only pass in a Box instance.  Refactor addBox to return the new box instance instead of the id.
+
+Create a new utilities file and add a utility function, called findMostRecentBox, to take a collection of boxes, a target box, and a trackIndex. In the function, it loops through all of the boxes to determine the box nearest or equal to to (along the x axis), but not beyond the specified box, and only in the specified track. It then returns that box.
+
+Refactor the box class in boxUtils.ts and App.tsx into it's shared own file.
+
+The useEffect that initializes the system is called when handlePlayEvent changes. Why is it getting retriggered when I drag a square, add a square, or double click a square?
+
+refactor #sym:handlePlayEvent  to take as parameters box: Box, boxes: Box[], and the current playMode subclass instance.  Callers should compute the playMode by calling playModeMap[compositionMode].
+
+Use Tone.Sampler when constructing this.rhythmSynth, and have it point to 8 empty stub mp3 files, which I will download later.

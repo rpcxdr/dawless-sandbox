@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import * as Tone from 'tone';
 import { MajorMode } from './modes/majorMode';
 import { PentatonicMode } from './modes/pentatonicMode';
 import { KeyAndModeControlMode } from './modes/keyAndModeControlMode'
@@ -21,7 +22,6 @@ function App() {
   const [boxes, setBoxes] = useState<Box[]>([]);
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [playheadPosition, setPlayheadPosition] = useState(0);
-  const [currentKey] = useState('C4');
   const [compositionMode, setCompositionMode] = useState<string>(MajorMode.name);
   const [activeBoxId, setActiveBoxId] = useState<number | null>(null);
   const [isOverTrash, setIsOverTrash] = useState(false);
@@ -32,6 +32,30 @@ function App() {
   const lastPlayheadXRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
   const [containerHeight, setContainerHeight] = useState(0);
+  const audioStartedRef = useRef(false);
+
+  const ensureAudioStarted = useCallback(async () => {
+    if (audioStartedRef.current) {
+      return;
+    }
+
+    if (Tone.getContext().state !== 'running') {
+      await Tone.start();
+    }
+
+    audioStartedRef.current = true;
+  }, []);
+
+  const handleUserGesture = useCallback(() => {
+    void ensureAudioStarted();
+  }, [ensureAudioStarted]);
+
+  useEffect(() => {
+    window.addEventListener('pointerdown', handleUserGesture, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', handleUserGesture);
+    };
+  }, [handleUserGesture]);
 
   useEffect(() => {
     const updateContainerHeight = () => {
@@ -61,12 +85,9 @@ function App() {
     };
   }, [playModeMap]);
 
-  const handlePlayEvent = useCallback(
-    async (box: Box) => {
-      await playModeMap[compositionMode].play(box, boxes);
-    },
-    [compositionMode, playModeMap, boxes]
-  );
+  const handlePlayEvent = useCallback(async (box: Box, boxes: Box[], playMode: ModeBase) => {
+    await playMode.play(box, boxes);
+  }, []);
 
   const addBox = useCallback((x: number, y: number) => {
     const newBox: Box = {
@@ -81,13 +102,16 @@ function App() {
     return newBox;
   }, []);
 
-  const handleContainerDoubleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+  const handleContainerDoubleClick = async (event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - rect.left - 25;
     const y = event.clientY - rect.top - 25;
+
+    await ensureAudioStarted();
+
     const newBox = addBox(x, y);
     setActiveBoxId(newBox.id);
-    handlePlayEvent(newBox);
+    void handlePlayEvent(newBox, boxesRef.current, playModeMap[compositionMode]);
   };
 
   const beginDrag = (event: React.PointerEvent<HTMLDivElement>, box: Box) => {
@@ -189,7 +213,7 @@ function App() {
         boxesRef.current.forEach((box) => {
           if (lastPlayheadXRef.current! < box.x && playheadX >= box.x) {
             setActiveBoxId(box.id);
-            void handlePlayEvent(box);
+            void handlePlayEvent(box, boxesRef.current, playModeMap[compositionMode]);
           }
         });
       }
@@ -204,7 +228,7 @@ function App() {
     return () => {
       window.cancelAnimationFrame(frameId);
     };
-  }, [currentKey, handlePlayEvent]);
+  }, [compositionMode, handlePlayEvent, playModeMap]);
 
   const containerStyle = useMemo(
     () => ({
