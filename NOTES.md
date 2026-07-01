@@ -95,3 +95,5 @@ The useEffect that initializes the system is called when handlePlayEvent changes
 refactor #sym:handlePlayEvent  to take as parameters box: Box, boxes: Box[], and the current playMode subclass instance.  Callers should compute the playMode by calling playModeMap[compositionMode].
 
 Use Tone.Sampler when constructing this.rhythmSynth, and have it point to 8 empty stub mp3 files, which I will download later.
+
+Samples downloaded from https://pixabay.com/sound-effects/search/
