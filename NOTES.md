@@ -1,29 +1,34 @@
 # Install:
 
-# Create a local virtual environment for the project
+## Create a local virtual environment for the project
 C:/Users/[User]/AppData/Local/Microsoft/WindowsApps/python3.13.exe -m venv .venv
 
-# Activate the venv in PowerShell
+## Activate the venv in PowerShell
 .\.venv\Scripts\Activate.ps1
 
-# Install the Spotify Pedalboard package
+## Install the Spotify Pedalboard package
 python -m pip install --upgrade pip
 python -m pip install pedalboard
 
-# Run the example script
+## Run the example script
 python play_quarter_notes.py
 
-# React + TypeScript browser synth with Tone.js
+## React + TypeScript browser synth with Tone.js
 # Install Node.js first if needed: https://nodejs.org/
 
-# From this folder, install the app dependencies
+## From this folder, install the app dependencies
 npm install
 
-# Start the Vite dev server
+## Start the Vite dev server
 npm run dev
 
-# Then open:
-# http://127.0.0.1:5173/
+## Then open:
+## http://127.0.0.1:5173/
+
+# Steps to deploy on github
+
+npm install gh-pages --save-dev
+
 
 # Prompts:
 ### Attempt to generate sound on the server side:
