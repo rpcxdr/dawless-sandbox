@@ -22,7 +22,7 @@ function App() {
   const [boxes, setBoxes] = useState<Box[]>([]);
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [playheadPosition, setPlayheadPosition] = useState(0);
-  const [compositionMode, setCompositionMode] = useState<string>(MajorMode.name);
+  const [compositionMode, setCompositionMode] = useState<string>('Pentatonic');
   const [activeBoxId, setActiveBoxId] = useState<number | null>(null);
   const [isOverTrash, setIsOverTrash] = useState(false);
   const offsetRef = useRef({ x: 0, y: 0 });
@@ -33,7 +33,10 @@ function App() {
   const didDragRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const [containerHeight, setContainerHeight] = useState(0);
+  const [showHint, setShowHint] = useState(true);
+  const [hintFading, setHintFading] = useState(false);
   const audioStartedRef = useRef(false);
+  const HINT_FADE_DURATION = 300;
 
   const ensureAudioStarted = useCallback(async () => {
     if (audioStartedRef.current) {
@@ -50,6 +53,13 @@ function App() {
   const handleUserGesture = useCallback(() => {
     void ensureAudioStarted();
   }, [ensureAudioStarted]);
+
+  const handleContainerGesture = useCallback(() => {
+    if (showHint) {
+      setHintFading(true);
+      window.setTimeout(() => setShowHint(false), HINT_FADE_DURATION);
+    }
+  }, [showHint]);
 
   useEffect(() => {
     window.addEventListener('pointerdown', handleUserGesture, { once: true });
@@ -257,6 +267,41 @@ function App() {
 
   return (
     <div className="app">
+      {showHint && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 20,
+            pointerEvents: 'none',
+            opacity: hintFading ? 0 : 1,
+            transition: `opacity ${HINT_FADE_DURATION}ms ease`,
+            color: 'white',
+          }}
+        >
+          <div
+            style={{
+              maxWidth: 360,
+              padding: '18px 22px',
+              borderRadius: 18,
+              background: 'rgba(15, 23, 42, 0.92)',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+              textAlign: 'center',
+              pointerEvents: 'none',
+            }}
+          >
+            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
+              Double-click to add a box.
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
+              Click a box to add to the stack.
+            </div>
+          </div>
+        </div>
+      )}
       <div className="composition-controls" role="group" aria-label="Composition mode">
         {Object.entries(playModeMap).map(([modeName]) => (
           <button
@@ -269,7 +314,7 @@ function App() {
           </button>
         ))}
       </div>
-      <div ref={containerRef} className="container" style={containerStyle} onDoubleClick={handleContainerDoubleClick}>
+      <div ref={containerRef} className="container" style={containerStyle} onDoubleClick={handleContainerDoubleClick} onPointerDown={handleContainerGesture}>
         <div className="track-layer" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
           {trackSections.map((track, index) => (
             <div
