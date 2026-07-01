@@ -27,8 +27,8 @@ npm run dev
 
 # Steps to deploy on github
 
-npm install gh-pages --save-dev
-
+npm install gh-pages --save-dev # once to install
+npm run deploy 
 
 # Prompts:
 ### Attempt to generate sound on the server side:
