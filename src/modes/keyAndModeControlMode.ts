@@ -32,10 +32,10 @@ export class KeyAndModeControlMode  extends ModeBase {
   private harmonySynth: Tone.PolySynth<Tone.Synth> | null = null;
   private bassSynth: Tone.PolySynth<Tone.Synth> | null = null;
   private rhythmSynth: Tone.Sampler | null = null;
-  protected readonly modeName = 'KeyAndModeControl';
 
   constructor(containerHeight: number) {
     super(containerHeight);
+    this.modeName = 'Key & Mode Control';
 
     this.melodySynth = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: 'triangle' },

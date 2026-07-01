@@ -7,10 +7,10 @@ export class PentatonicMode extends ModeBase {
   private harmonySynth: Tone.PolySynth<Tone.Synth> | null = null;
   private bassSynth: Tone.PolySynth<Tone.Synth> | null = null;
   private rhythmSynth: Tone.PolySynth<Tone.Synth> | null = null;
-  protected readonly modeName = 'PentatonicMode';
 
   constructor(containerHeight: number) {
     super(containerHeight);
+    this.modeName = 'Pentatonic';
 
     this.melodySynth = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: 'triangle' },

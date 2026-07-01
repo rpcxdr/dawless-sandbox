@@ -31,6 +31,7 @@ function App() {
   const boxesRef = useRef(boxes);
   const lastPlayheadXRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
   const [containerHeight, setContainerHeight] = useState(0);
   const audioStartedRef = useRef(false);
 
@@ -74,7 +75,8 @@ function App() {
 
   const playModeMap = useMemo(() => {
     return playModes.reduce<Record<string, ModeBase>>((acc, Mode) => {
-      acc[Mode.name] = new Mode(containerHeight);
+      let newMode = new Mode(containerHeight);
+      acc[newMode.modeName] = newMode;
       return acc;
     }, {});
   }, [containerHeight]);
@@ -117,6 +119,7 @@ function App() {
   const beginDrag = (event: React.PointerEvent<HTMLDivElement>, box: Box) => {
     event.stopPropagation();
     didDragRef.current = false;
+    dragStartRef.current = { x: event.clientX, y: event.clientY };
     const rect = event.currentTarget.getBoundingClientRect();
     setDraggingId(box.id);
     offsetRef.current = {
@@ -128,6 +131,13 @@ function App() {
 
   const handleDrag = (event: React.PointerEvent<HTMLDivElement>) => {
     if (draggingId === null || !containerRef.current) {
+      return;
+    }
+
+    const dx = event.clientX - dragStartRef.current.x;
+    const dy = event.clientY - dragStartRef.current.y;
+    const dragThreshold = 6;
+    if (dx * dx + dy * dy < dragThreshold * dragThreshold) {
       return;
     }
 
@@ -255,7 +265,7 @@ function App() {
             className={`composition-mode-button${compositionMode === modeName ? ' is-active' : ''}`}
             onClick={() => {setCompositionMode(modeName); console.log(`Switched to ${modeName}`);}}
           >
-            {modeName.slice(0, -4)}
+            {modeName}
           </button>
         ))}
       </div>

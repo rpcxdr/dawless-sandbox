@@ -1,9 +1,11 @@
 import { Box } from '../box';
 
 export abstract class ModeBase {
-  protected abstract modeName: string;
+  public modeName: string;
 
-  constructor(protected readonly containerHeight: number) {}
+  constructor(protected readonly containerHeight: number) {
+    this.modeName = 'Mode';
+  }
 
   abstract play(box: Box, boxes: Box[]): Promise<void>;
 
