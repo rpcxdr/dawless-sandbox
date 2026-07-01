@@ -61,7 +61,7 @@ export class KeyAndModeControlMode  extends ModeBase {
         33: 'freesound_community-ambience-85751.mp3',
         34: 'freesound_community-straigh-up-n-down-90427.mp3',
       },
-      baseUrl: '/rhythm/',
+      baseUrl: `${import.meta.env.BASE_URL}rhythm/`,
       onload: () => {
         // Sampler loaded; samples can be replaced later with actual audio files.
       },
@@ -106,10 +106,8 @@ export class KeyAndModeControlMode  extends ModeBase {
       const harmonyStackHeight = findMostRecentBox(boxes, box, 1, this.containerHeight)?.stackHeight || 1;
       const harmonyScaleDegrees = modes[(harmonyStackHeight-1) % 7];
 
-
       const degreeOffset = Math.max(stackHeight - 1, 0);
       const semitoneOffset = harmonyScaleDegrees[degreeOffset % 7] + Math.floor(degreeOffset / 7) * 12;
-      
       const targetMidi = bassRootMidi + semitoneOffset;
 
       const targetNote = Tone.Frequency(targetMidi, 'midi').toNote();
@@ -120,9 +118,8 @@ export class KeyAndModeControlMode  extends ModeBase {
 
       const harmonyScaleDegrees = modes[(stackHeight-1) % 7];
 
-      const chordDegrees = [0, 2, 4]; // Triad: root, third, fifth
-      //const chordDegrees = [0, 2, 4, 6, 8]; // Triad: root, third, fifth
-      for(const chordDegree of chordDegrees) {
+      const chordDegrees = [0, 2, 4];
+      for (const chordDegree of chordDegrees) {
         const semitoneOffset = harmonyScaleDegrees[chordDegree % 7] + Math.floor(chordDegree / 7) * 12;
         const targetMidi = bassRootMidi + semitoneOffset;
         const targetNote = Tone.Frequency(targetMidi, 'midi').toNote();
