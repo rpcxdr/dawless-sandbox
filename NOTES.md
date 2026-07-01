@@ -29,6 +29,8 @@ npm run dev
 
 npm install gh-pages --save-dev # once to install
 npm run deploy 
+Check build status: https://github.com/rpcxdr/dawless-sandbox/actions
+Open https://rpcxdr.github.io/dawless-sandbox/
 
 # Prompts:
 ### Attempt to generate sound on the server side:
