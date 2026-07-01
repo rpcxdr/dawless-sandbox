@@ -44,7 +44,7 @@ export class MajorMode extends ModeBase {
     this.rhythmSynth = null;
   }
 
-  async play(box: Box, boxes: Box[]) {
+  async play(box: Box, _boxes: Box[]) {
     const key = 'C4';
     const stackHeight = box.stackHeight;
     const boxCenterY = box.y + 25;

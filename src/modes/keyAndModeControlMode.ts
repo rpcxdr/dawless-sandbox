@@ -24,7 +24,7 @@ const modes = [ // Ordered by popularity in Western music
   [0,1,3,5,6,8,10]  // 6 Locrian
 ];
 
-const harmonyScaleDegrees = [0, 2, 4, 5, 7, 9, 11];
+//const harmonyScaleDegrees = [0, 2, 4, 5, 7, 9, 11];
 
 
 export class KeyAndModeControlMode  extends ModeBase {
