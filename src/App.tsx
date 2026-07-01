@@ -253,7 +253,7 @@ function App() {
             key={modeName}
             type="button"
             className={`composition-mode-button${compositionMode === modeName ? ' is-active' : ''}`}
-            onClick={() => setCompositionMode(modeName)}
+            onClick={() => {setCompositionMode(modeName); console.log(`Switched to ${modeName}`);}}
           >
             {modeName.slice(0, -4)}
           </button>
